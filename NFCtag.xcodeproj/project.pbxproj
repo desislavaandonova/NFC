@@ -287,7 +287,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"NFCtag/Preview Content\"";
-				DEVELOPMENT_TEAM = 4XW83F32HZ;
+				DEVELOPMENT_TEAM = R9XJ622U85;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NFCReaderUsageDescription = "Use NFC to read and write data";
@@ -302,7 +302,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = d.NFCtag;
+				PRODUCT_BUNDLE_IDENTIFIER = nl.fontys.nfctaggame;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "NFCtag/NFCtag-Bridging-Header.h";
@@ -322,7 +322,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"NFCtag/Preview Content\"";
-				DEVELOPMENT_TEAM = 4XW83F32HZ;
+				DEVELOPMENT_TEAM = R9XJ622U85;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NFCReaderUsageDescription = "Use NFC to read and write data";
@@ -337,7 +337,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = d.NFCtag;
+				PRODUCT_BUNDLE_IDENTIFIER = nl.fontys.nfctaggame;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "NFCtag/NFCtag-Bridging-Header.h";
