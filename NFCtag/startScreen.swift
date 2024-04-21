@@ -11,6 +11,7 @@ struct DuckHuntApp: App {
 }
 
 struct StartScreen: View {
+    @State private var bullets = 3
     var body: some View {
         NavigationView {
             VStack {
@@ -21,7 +22,7 @@ struct StartScreen: View {
                 Text("Welcome to Duck Hunt!")
                     .font(.title)
                     .padding()
-                Text("Tap the ducks to shoot them. You have 3 bullets. When out of bullets, scan an NFC tag to reload.")
+                Text("Scan an NFC tag to gain bullets. Tap the ducks to shoot them, each tap consuming one bullet. To reload scan NFC tag. Different tags hold different numbers of bullets. Have fun!")
                     .font(.subheadline)
                     .multilineTextAlignment(.center)
                     .padding()
@@ -32,7 +33,7 @@ struct StartScreen: View {
                             .font(.headline)
                             .foregroundColor(.white)
                             .padding()
-                            .background(Color.blue)
+                            .background(Color.teal)
                             .cornerRadius(10)
                     })
             }

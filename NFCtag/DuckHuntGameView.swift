@@ -1,38 +1,62 @@
 import SwiftUI
+import CoreNFC
 
-struct ContentView: View {
+struct ScanNFCButton: View {
+    @StateObject var nfcReader = NFCReader()
+    @Binding var bullets: Int
+    
     var body: some View {
-        NavigationView {
-            VStack {
-                NavigationLink(destination: DuckHuntGameView()) {
-                    Text("Start Game")
-                        .font(.title)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-                .padding()
-                
-                Spacer()
+        Button(action: {
+            nfcReader.beginSession()
+        }) {
+            HStack {
+                Image(systemName: "wave.3.right")
+                    .foregroundColor(.white)
+                Text("Scan NFC tag to reload")
+                    .foregroundColor(.white)
             }
-            .navigationTitle("Duck Hunt")
-            .background(Color(UIColor.systemTeal).ignoresSafeArea())
+            .font(.headline)
+            .padding(10)
+            .background(Color.blue)
+            .cornerRadius(10)
         }
+        .padding(.top)
+        .padding(.trailing)
+        .onReceive(nfcReader.$message) { message in
+            if message != "Scan a tag" {
+                print("NFC Tag read: \(message)")
+                // the tag content is the number of bullets to be added
+                if let bulletsToAdd = Int(message) {
+                    DispatchQueue.main.async {
+                        addBullets(bulletsToAdd)
+                    }
+                }
+            }
+        }
+    }
+    
+    func addBullets(_ bulletsToAdd: Int) {
+        bullets += bulletsToAdd
     }
 }
 
 struct DuckHuntGameView: View {
     @State private var ducks = [Duck]()
     @State private var gameIsOver = false
-    @State private var timeRemaining = 10 // 10 seconds for testing
+    @State private var timeRemaining = 30 // 30 seconds for testing
     @State private var score = 0
-    @State private var bullets = 3 // maximum number of bullets
-    
+    @State private var bullets = 0
+    @StateObject private var nfcReader = NFCReader()
+
     var body: some View {
         Group {
             if gameIsOver {
                 GameOverView(score: score, replayAction: replayGame)
+                    .foregroundColor(.teal)
+                    .font(.title)
+                    .padding()
+                    .textCase(.uppercase)
+                    .fontWeight(.bold)
             } else {
                 VStack {
                     ZStack {
@@ -79,7 +103,7 @@ struct DuckHuntGameView: View {
                                     .cornerRadius(10)
                                 
                                 Spacer()
-
+                                
                                 Text("Bullets: \(bullets)")
                                     .font(.headline)
                                     .foregroundColor(.white)
@@ -104,14 +128,23 @@ struct DuckHuntGameView: View {
                     }
                     .background(Color(UIColor.systemTeal).ignoresSafeArea())
                 }
-            }
-        }
-    }
+                .overlay(
+                    VStack {
+                        HStack {
+                            Spacer()
+                            ScanNFCButton(bullets: $bullets)
+                                .padding(.top, -20)
+                                .padding(.trailing, 0)
+                        }
+                        Spacer()
+                    }
+                )
+            }}}
     
     // start the game by spawning ducks
     func startGame() {
-        ducks.removeAll() // clear leftoover ducks from previous game
-        bullets = 3 // reset bullets count
+        ducks.removeAll() // clear leftover ducks from the previous game
+        bullets = 0 // reset bullets count
         // generate 12 ducks
         for _ in 0..<12 {
             spawnDuck()
@@ -146,7 +179,7 @@ struct DuckHuntGameView: View {
     // func to replay the game
     func replayGame() {
         gameIsOver = false
-        timeRemaining = 10
+        timeRemaining = 30
         score = 0
         startGame()
     }
@@ -167,42 +200,74 @@ struct DuckView: View {
             .position(duck.position)
     }
 }
-
+//game over screen
 struct GameOverView: View {
     var score: Int
     var replayAction: () -> Void
     
     var body: some View {
-        VStack {
-            Text("Game Over")
-                .font(.title)
-                .foregroundColor(.red)
-                .padding()
-            
-            Text("Final Score: \(score)")
-                .font(.headline)
-                .foregroundColor(.black)
-                .padding()
-            
-            Button(action: {
-                replayAction()
-            }) {
-                Text("Replay")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-            .padding()
-            
-            Spacer()
+         VStack {
+             Text("GAME OVER")
+                 .padding()
+                 .font(.largeTitle)
+                 .foregroundColor(.teal)
+                 .textCase(.uppercase)
+                 .fontWeight(.bold)
+             
+             Text("Final Score: \(score)")
+                 .font(.headline)
+                 .padding()
+                 .foregroundColor(.black)
+             
+             Button(action: {
+                 replayAction()
+             }) {
+                 HStack {
+                     Image(systemName: "arrow.clockwise")
+                         .foregroundColor(.white)
+                     Text("Replay")
+                         .font(.headline)
+                         .foregroundColor(.white)
+                 }
+                 .padding()
+                 .background(Color.teal)
+                 .cornerRadius(10)
+             }
+             .padding()
+             
+             Spacer()
+         }
+     }
+ }
+
+class NFCReader: NSObject, ObservableObject, NFCNDEFReaderSessionDelegate {
+    var nfcSession: NFCNDEFReaderSession?
+    @Published var message: String = "Scan a tag"
+
+    func beginSession() {
+        nfcSession = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: true)
+        nfcSession?.alertMessage = "Hold your iPhone near the NFC tag."
+        nfcSession?.begin()
+    }
+
+    func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: Error) {
+        DispatchQueue.main.async {
+            self.message = "Session invalidated: \(error.localizedDescription)"
         }
     }
-}
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+    func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
+        guard let ndefMessage = messages.first else { return }
+        var result = ""
+        var count = 0
+        for record in ndefMessage.records {
+            if let string = String(data: record.payload.advanced(by: 3), encoding: .utf8) {
+                count += 1
+                result += "\(string)"
+            }
+        }
+        DispatchQueue.main.async {
+            self.message = result.isEmpty ? "Tag read, but no valid text found." : result
+        }
     }
 }
